@@ -1,14 +1,14 @@
 # АНАЛИЗ ДАННЫХ И ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ [in GameDev]
 Отчет по лабораторной работе #1 выполнил(а):
-- Иванова Ивана Варкравтовна
+- Савенков Александр Александрович
 - РИ000024
 Отметка о выполнении заданий (заполняется студентом):
 
 | Задание | Выполнение | Баллы |
 | ------ | ------ | ------ |
-| Задание 1 | # | 60 |
-| Задание 2 | # | 20 |
-| Задание 3 | # | 20 |
+| Задание 1 | * | 60 |
+| Задание 2 | * | 20 |
+| Задание 3 | * | 20 |
 
 знак "*" - задание выполнено; знак "#" - задание не выполнено;
 
@@ -35,16 +35,37 @@
 - ✨Magic ✨
 
 ## Цель работы
-Ознакомиться с основными операторами зыка Python на примере реализации линейной регрессии.
+Научиться работать с Jupyter Notebook и Unity. Ознакомиться с основными операторами зыка Python на
+примере реализации линейной регрессии.
 
 ## Задание 1
-### Пошагово выполнить каждый пункт раздела "ход работы" с описанием и примерами реализации задач
+### Написать программы Hello World на Python и Unity.
+
+![](Python.png)
+
+https://colab.research.google.com/drive/1gfd1KinyCikgPAlCcxauNaXBNJQNI9vw?usp=sharing
+
+## Задание 2
+- В ходе работы был установлен Unity версии 2020.3.38f1, создан пустой 3d проект.
+- Создана папка Scripts в Assets
+- Создан файл C#
+
+![](Unity1.png)
+
+- Результат выполнения
+
+![](Unity2.png)
+
+## Задание 3
+###  Пошагово выполнить каждый пункт раздела "ход работы" с описанием и примерами реализации задач
+
 Ход работы:
-- Произвести подготовку данных для работы с алгоритмом линейной регрессии. 10 видов данных были установлены случайным образом, и данные находились в линейной зависимости. Данные преобразуются в формат массива, чтобы их можно было вычислить напрямую при использовании умножения и сложения.
+- Произвел подготовку данных для работы с алгоритмом линейной регрессии. 10 видов данных были установлены случайным образом, и данные находились в линейной зависимости. Данные преобразуются в формат массива, чтобы их можно было вычислить напрямую при использовании умножения и сложения.
+
 
 ```py
 
-In [ ]:
+In [ ]:
 #Import the required modules, numpy for calculation, and Matplotlib for drawing
 import numpy as np
 import matplotlib.pyplot as plt
@@ -59,71 +80,120 @@ y = np.array(y)
 
 #Show the effect of a scatter plot
 plt.scatter(x,y)
-
 ```
 
-- Определите связанные функции. Функция модели: определяет модель линейной регрессии wx+b. Функция потерь: функция потерь среднеквадратичной ошибки. Функция оптимизации: метод градиентного спуска для нахождения частных производных w и b.
+![](Picture1.png)
+Рисунок 1
+
+### 2
+- Определил связанные функции. Функция модели: определяет модель линейной регрессии wx+b. Функция потерь: функция потерь среднеквадратичной ошибки. Функция оптимизации: метод градиентного спуска для нахождения частных производных w и b.
 
 
-## Задание 2
-### Должна ли величина loss стремиться к нулю при изменении исходных данных? Ответьте на вопрос, приведите пример выполнения кода, который подтверждает ваш ответ.
+```python
+def model(a, b, x):
+    return a * x + b
 
-- Перечисленные в этом туториале действия могут быть выполнены запуском на исполнение скрипт-файла, доступного [в репозитории](https://github.com/Den1sovDm1triy/hfss-scripting/blob/main/ScreatingSphereInAEDT.py).
-- Для запуска скрипт-файла откройте Ansys Electronics Desktop. Перейдите во вкладку [Automation] - [Run Script] - [Выберите файл с именем ScreatingSphereInAEDT.py из репозитория].
+def loss_function(a, b, x, y):
+    num = len(x)
+    prediction = model(a, b, x)
+    return (0.5 / num) * (np.square(prediction - y)).sum()
 
-```py
+def optimize(Lr, a, b, x, y):
+    num = len(x)
+    prediction = model(a, b, x)
+    da = (1.0 / num) * ((prediction - y) * x).sum()
+    db = (1.0 / num) * ((prediction - y).sum())
+    a = a - Lr * da
+    b = b - Lr * db
+    return a, b
 
-import ScriptEnv
-ScriptEnv.Initialize("Ansoft.ElectronicsDesktop")
-oDesktop.RestoreWindow()
-oProject = oDesktop.NewProject()
-oProject.Rename("C:/Users/denisov.dv/Documents/Ansoft/SphereDIffraction.aedt", True)
-oProject.InsertDesign("HFSS", "HFSSDesign1", "HFSS Terminal Network", "")
-oDesign = oProject.SetActiveDesign("HFSSDesign1")
-oEditor = oDesign.SetActiveEditor("3D Modeler")
-oEditor.CreateSphere(
-	[
-		"NAME:SphereParameters",
-		"XCenter:="		, "0mm",
-		"YCenter:="		, "0mm",
-		"ZCenter:="		, "0mm",
-		"Radius:="		, "1.0770329614269mm"
-	], 
-)
-
+def iterate(Lr, a, b, x, y, times):
+    for i in range(times):
+        a, b = optimize(Lr, a, b, x, y)
+    return a,b  
 ```
 
-## Задание 3
-### Какова роль параметра Lr? Ответьте на вопрос, приведите пример выполнения кода, который подтверждает ваш ответ. В качестве эксперимента можете изменить значение параметра.
+### 3. Начать инетерацию
+- Шаг 1 Инициализация и модель итеративной оптимизации.
 
-- Перечисленные в этом туториале действия могут быть выполнены запуском на исполнение скрипт-файла, доступного [в репозитории](https://github.com/Den1sovDm1triy/hfss-scripting/blob/main/ScreatingSphereInAEDT.py).
-- Для запуска скрипт-файла откройте Ansys Electronics Desktop. Перейдите во вкладку [Automation] - [Run Script] - [Выберите файл с именем ScreatingSphereInAEDT.py из репозитория].
+```python
+Lr = 0.000001
+#Lr = 0.00005
+a_rand = np.random.rand(1)
+b_rand = np.random.rand(1)
+print(a_rand,b_rand)
 
-```py
+a = np.copy(a_rand)
+b = np.copy(b_rand)
+iter_range = np.arange(1, 6) * 200
+iter_range = np.concatenate([[1], iter_range])
 
-import ScriptEnv
-ScriptEnv.Initialize("Ansoft.ElectronicsDesktop")
-oDesktop.RestoreWindow()
-oProject = oDesktop.NewProject()
-oProject.Rename("C:/Users/denisov.dv/Documents/Ansoft/SphereDIffraction.aedt", True)
-oProject.InsertDesign("HFSS", "HFSSDesign1", "HFSS Terminal Network", "")
-oDesign = oProject.SetActiveDesign("HFSSDesign1")
-oEditor = oDesign.SetActiveEditor("3D Modeler")
-oEditor.CreateSphere(
-	[
-		"NAME:SphereParameters",
-		"XCenter:="		, "0mm",
-		"YCenter:="		, "0mm",
-		"ZCenter:="		, "0mm",
-		"Radius:="		, "1.0770329614269mm"
-	], 
-)
+a_loss = []
 
+for iter in iter_range:
+    a,b = iterate(Lr, a,b,x,y, iter)
+    prediction=model(a,b,x)
+    loss = loss_function(a, b, x, y)
+    a_loss.append(loss)
+
+    print(a,b,loss)
+    plt.scatter(x,y)
+    plt.plot(x,prediction, label=iter)
+
+plt.legend(loc='best')
+plt.show()
 ```
 
+![](Ls.png)
+Рисунок 2
+
+### Шаг 2
+- Должна ли величина loss стремиться к нулю при изменении исходных данных? Ответьте на вопрос, приведите пример выполнения кода, который подтверждает ваш ответ.
+
+При увеличении итераций величина loss должна стремиться к нулю. Loss показывает количество ошибок и их значение после некоторого числа итераций. Если loss меньше, меньше ошибка и соответственно точнее модель.
+
+
+```python
+#Import the required modules, numpy for calculation, and Matplotlib for drawing
+import numpy as np
+import matplotlib.pyplot as plt
+from cProfile import label
+#This code is for jupyter Notebook only
+%matplotlib inline
+
+# define data, and change list to array
+x = [5,21,24,42,54,34,60,101,112,99]
+x = np.array(x)
+y = [7,22,28,52,63,90,55,122,131,199]
+y = np.array(y)
+
+#Show the effect of a scatter plot
+plt.scatter(x,y)
+```
+![](Picture3.png)
+Рисунок 3
+
+- Итерации на новых данных
+```python
+x = [5,21,24,42,54,34,60,101,112,99]
+x = np.array(x)
+y = [7,22,28,52,63,90,55,122,131,199]
+y = np.array(y)
+```
+![](Picture4.png)
+Рисунок 4
+
+### Шаг 3
+- Какова роль параметра Lr? Ответьте на вопрос, приведите пример выполнения кода, который подтверждает ваш ответ. В качестве эксперимента можете изменить значение параметра.
+
+- Lr (Learning rate) - это коэффициент скорости обучения. Чем выше коэффициент обучения, тем быстрее модель достигает более точныйы результат и тем меньше loss.
+
+- Lr = 0.00005
+![](Picture5.png)
+Рисунок 5
 ## Выводы
 
-Абзац умных слов о том, что было сделано и что было узнано.
+В ходе выполнения лабораторная работы я ознакомился с библиотеками numpy, mathplotlib.
 
 | Plugin | README |
 | ------ | ------ |
