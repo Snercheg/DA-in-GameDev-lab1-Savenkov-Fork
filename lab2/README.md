@@ -40,9 +40,10 @@
 ## Задание 1
 Ход работы:
 
-- Создал проект на console.google.com для реализации связи Google Sheets, Python и Unity. Создал сервисный аккаунт и подключил API
+- Создал проект на console.google.com для реализации связи Google Sheets, Python и Unity. Создал сервисный аккаунт и подключил необходимые API
 
-- Реализовал запись данных из Python-скрипта в Google Sheets. Данные описывают изменения темпа инфляции.
+- Реализовал запись данных из скрипта в Google Sheets. Данные описывают изменения темпа инфляции.
+
 
 ```py
 import gspread as g
@@ -59,6 +60,13 @@ for i in range(1, 11):
     sh.update(('B' + str(i)), str(price[i]))
     sh.update(('C' + str(i)), f"{inf:.3f}".replace(".", ","))
 ```
+
+![](Data1.png)
+Рисунок 1
+
+- Создал проект в Unity и написал скрипт, который запрашивает данные из Google Sheets.
+
+- Написал код, который воспроизводит аудио-файлы в формате .wav в зависимости от значения в таблице
 
 ```csharp
 using System.Collections;
@@ -117,7 +125,7 @@ public class NewBehaviourScript : MonoBehaviour
     }
 
     IEnumerator GoogleSheets() {
-        UnityWebRequest currentResp = UnityWebRequest.Get("https://sheets.googleapis.com/v4/spreadsheets/1zbYNBbjBTkQNrmBpAyAdHjnM35UFv3QVf_PrJ52ie5s"));
+        UnityWebRequest currentResp = UnityWebRequest.Get(url);
         yield return currentResp.SendWebRequest();
 
         string rawResp = currentResp.downloadHandler.text;
@@ -163,9 +171,15 @@ public class NewBehaviourScript : MonoBehaviour
     }
 }
 ```
+- Скрипт выводит звук в зависимости от данных из Google Sheets. Если значение больше 100 воспроизводится аудио-файл Bad, в промежутке от 10 до 100 - файл Normal, при значении меньше 10 Good.
+
+![](Task1.png)
+Рисунок 2
+
+
 ## Задание 2
 
-- Реализовал запись на вторую страницу в таблице(Лист2) набора данных, полученных с помощью линейной регрессии из 1 лаб. работы.
+- Реализовал запись на страницу Sheet2 набора данных, полученных с помощью линейной регрессии.
 
 ```python
 from statistics import mode
@@ -173,66 +187,74 @@ import matplotlib.pyplot as plt
 import gspread as g
 import numpy as np
 
-x = [3,21,22,34,54,34,55,67,89,99]
+x = [5,21,24,42,54,34,60,101,112,99]
 x = np.array(x)
-y = [2,22,24,65,79,82,55,130,150,199]
+y = [7,22,28,52,63,90,55,122,131,199]
 y = np.array(y)
 
 gc = g.service_account(filename='unitydatascience-364706-1c1ce20c7b07.json')
-sh = gc.open("UnitySheets").worksheet('Лист2')
+sh = gc.open("UnitySheets").worksheet('Sheet2')
 
-def model(w, b, x):
-    return w*x + b
+def model(a, b, x):
+    return a * x + b
 
-def lossFun(w, b, x, y):
+def loss_function(a, b, x, y):
     num = len(x)
-    predic = model(w, b, x)
-    return (0.5/num) * (np.square(predic-y)).sum()
+    prediction = model(a, b, x)
+    return (0.5 / num) * (np.square(prediction - y)).sum()
 
-def optimization(lr, w, b, x, y):
+def optimize(Lr, a, b, x, y):
     num = len(x)
-    predic = model(w, b, x)
-    dw = (1.0/num) * ((predic - y) * x).sum()
-    db = (1.0/num) * ((predic - y).sum())
-    w = w - lr*dw
-    b = b - lr*db
-    return w, b
+    prediction = model(a, b, x)
+    da = (1.0 / num) * ((prediction - y) * x).sum()
+    db = (1.0 / num) * ((prediction - y).sum())
+    a = a - Lr * da
+    b = b - Lr * db
+    return a, b
 
-def iter(lr, w, b, x, y, times):
+def iterate(Lr, a, b, x, y, times):
     for i in range(times):
-        w, b = optimization(lr, w, b, x, y)
-    return w,b  
+        a, b = optimize(Lr, a, b, x, y)
+    return a,b  
 
-lr = 0.000001
-a_f = np.random.rand(1)
-print(a_f)
-b_f = np.random.rand(1)
-print(b_f)
+Lr = 0.000001
 
-a = np.copy(a_f)
-b = np.copy(b_f)
-n_a = np.arange(1, 6) * 200
-n_a = np.concatenate([[1], n_a])
+a_rand = np.random.rand(1)
+b_rand = np.random.rand(1)
+
+a = np.copy(a_rand)
+b = np.copy(b_rand)
+iter_range = np.arange(1, 6) * 200
+iter_range = np.concatenate([[1], iter_range])
+
 a_loss = []
 
-for i, n in enumerate(n_a):
-    a, b = iter(lr, a, b, x, y, n)
-    pred = model(a, b, x)
-    loss = lossFun(a, b, x, y)
+for iter, num in enumerate(iter_range):
+    a,b = iterate(Lr, a,b,x,y, num)
+    prediction = model(a,b,x)
+    loss = loss_function(a, b, x, y)
     a_loss.append(loss)
 
-    print(a, b, loss)
-    sh.update(('A' + str(i + 1)), str(n))
-    sh.update(('B' + str(i + 1)), f"{a[0]:.3f}".replace('.',','))
-    sh.update(('C' + str(i + 1)), f"{b[0]:.3f}".replace('.',','))
-    sh.update(('D' + str(i + 1)), f"{loss:.3f}".replace('.',','))
-
+    sh.update(('A' + str(iter + 1)), str(num))
+    sh.update(('B' + str(iter + 1)), f"{a[0]:.3f}".replace('.',','))
+    sh.update(('C' + str(iter + 1)), f"{b[0]:.3f}".replace('.',','))
+    sh.update(('D' + str(iter + 1)), f"{loss:.3f}".replace('.',','))
 ```
+- Полученный набор данных
+
+![](Data2.png)
+Рисунок 2
+
 ## Задание 3
 
+- Разработал сценарий воспроизведения звукового сопровождения в Unity в зависимости от изменения считанных данных полученных во 2 задании.
+- Изменил параметр ссылки, чтобы работать с таблицей Sheet2.  Изменил колонку для считывания данных на 4.
+- Если значение в таблице больше 1600 воспроизводится аудио-файл Bad, в промежутке от 400 до 1600 - файл Normal, при значении меньше 400 Good.
 
+![](Task2.png)
+Рисунок 3
 ## Выводы
-В ходе лабороторной работы я научился создавать наборы данных и передавать их в Google Sheets с помощью API. Научился воспроизводить звуковые файлы в Unity.
+В ходе лабороторной работы я научился создавать наборы данных и передавать их в Google Sheets с помощью API. Научился воспроизводить звуковые файлы в Unity в зависимости от значений полученных из таблицы.
 
 | Plugin | README |
 | ------ | ------ |
